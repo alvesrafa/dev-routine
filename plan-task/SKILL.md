@@ -7,42 +7,64 @@ description: Planeja tarefas de desenvolvimento de forma estruturada para times.
 
 ## Acionamento
 
-O usuário aciona com:
-
 ```
 /plan-task "descrição da tarefa"
 ```
 
-A descrição é opcional mas melhora muito a qualidade do plano.
+Sem descrição, peça antes de continuar.
+
+## Diretriz de resposta
+
+Seja completo mas sucinto. Omita explicações óbvias, prefira listas e diagramas a parágrafos. Economize tokens sem perder precisão técnica.
 
 ## Leitura de contexto do projeto
 
-Antes de qualquer coisa, procure e leia os seguintes arquivos **se existirem** no projeto atual:
+Leia **se existirem**:
 
-- `.claude/project.md` — stack, ambientes, módulos principais
-- `.claude/conventions.md` — padrões de código do time
-- `.claude/architecture.md` — decisões técnicas e estrutura
-- `.claude/known-issues.md` — armadilhas já conhecidas
+- `.claude/project.md` — stack, ambientes, módulos
+- `.claude/conventions.md` — padrões do time
+- `.claude/architecture.md` — decisões técnicas
+- `.claude/known-issues.md` — armadilhas conhecidas
 
-Se os arquivos não existirem, informe o usuário e continue com contexto genérico.
+Se não existirem, informe e continue com contexto genérico.
 
 ## O que produzir
 
 ### 1. Entendimento da tarefa
 
-Reformule a tarefa com suas próprias palavras para confirmar o entendimento. Se a descrição for ambígua, liste as premissas assumidas.
+Reformule em 2–3 linhas. Liste premissas assumidas se houver ambiguidade.
 
-### 2. Arquivos e módulos envolvidos
+### 2. Fluxograma da implementação
 
-Liste os arquivos/pastas prováveis que serão criados ou modificados, com uma linha explicando o motivo de cada um.
+Gere um diagrama Mermaid representando o fluxo principal da tarefa. Use `flowchart TD` para tarefas sequenciais ou `flowchart LR` para fluxos de dados/integrações. Escolha o tipo mais adequado ao contexto.
 
-### 3. Dependências e pré-requisitos
+Exemplos de uso:
 
-O que precisa existir ou estar funcionando antes de começar. Inclua: migrations pendentes, serviços externos, permissões, feature flags.
+- Feature com múltiplos passos → `flowchart TD` com decisões e ramificações
+- Integração entre serviços → `flowchart LR` com sistemas como nós
+- Job assíncrono → sequência com filas e estados
 
-### 4. Checklist de implementação
+```mermaid
+flowchart TD
+    A[Início] --> B{Condição}
+    B -->|Sim| C[Passo 1]
+    B -->|Não| D[Passo alternativo]
+    C --> E[Fim]
+    D --> E
+```
 
-Passos ordenados e acionáveis. Cada item deve ser pequeno o suficiente para ser feito e testado isoladamente. Use este formato:
+### 3. Arquivos e módulos envolvidos
+
+| Arquivo/Pasta                            | Ação      | Motivo        |
+| ---------------------------------------- | --------- | ------------- |
+| `app/Models/Foo.php`                     | Criar     | Novo model    |
+| `app/Http/Controllers/FooController.php` | Modificar | Novo endpoint |
+
+### 4. Dependências e pré-requisitos
+
+O que precisa existir antes de começar: migrations, serviços externos, permissões, feature flags.
+
+### 5. Checklist de implementação
 
 ```
 [ ] Passo 1 — descrição clara
@@ -50,33 +72,24 @@ Passos ordenados e acionáveis. Cada item deve ser pequeno o suficiente para ser
 ...
 ```
 
-### 5. Edge cases e riscos
+Cada item deve ser pequeno o suficiente para ser feito e testado isoladamente.
 
-Situações que podem quebrar a implementação se não forem consideradas. Priorize por impacto.
+### 6. Edge cases e riscos
 
-### 6. Critérios de aceitação
+Liste apenas os relevantes, por impacto. Se houver fluxo de erro complexo, adicione um segundo diagrama Mermaid.
 
-Como saber que a tarefa está pronta. Deve ser verificável (não subjetivo).
+### 7. Critérios de aceitação
 
-### 7. Estimativa
+Como saber que está pronto. Verificável, não subjetivo.
 
-Faixas de tempo: otimista / realista / pessimista. Justifique se a tarefa for maior que 1 dia.
+### 8. Estimativa
 
-## Comportamento com descrição fornecida
+Otimista / Realista / Pessimista. Justifique se > 1 dia.
 
-Se o usuário passou uma descrição, use-a para:
+## Comportamento com descrição
 
-- Identificar o tipo de tarefa (feature, bug, refactor, infra)
-- Ajustar o nível de detalhe (bug = mais diagnóstico; feature = mais arquitetura)
-- Detectar keywords que indiquem módulos específicos do projeto (ex: "importação", "prestador", "pré-inscrição") e cruzar com `.claude/architecture.md`
+Use a descrição para:
 
-## Comportamento sem descrição
-
-Peça ao usuário uma descrição mínima antes de continuar. Não gere um plano genérico vazio.
-
-## Tom e formato
-
-- Direto, sem introduções desnecessárias
-- Use markdown com seções numeradas
-- Listas de checklist com `[ ]`
-- Destaque em **negrito** apenas o que for crítico
+- Identificar tipo (feature / bug / refactor / infra)
+- Ajustar nível de detalhe
+- Detectar módulos pelo nome e cruzar com `.claude/architecture.md`

@@ -7,105 +7,89 @@ description: Guia a investigação e correção de bugs de forma estruturada. Us
 
 ## Acionamento
 
-O usuário aciona com:
-
 ```
 /fix-bug "descrição do comportamento inesperado"
 ```
 
-A descrição é opcional mas crítica para qualidade da investigação. Sem ela, peça antes de continuar.
+A descrição é crítica para qualidade da investigação. Sem ela, peça antes de continuar.
+
+## Diretriz de resposta
+
+Seja completo mas sucinto. Omita explicações óbvias, evite repetição, vá direto ao ponto. Economize tokens sem perder precisão técnica.
 
 ## Leitura de contexto do projeto
 
-Antes de qualquer análise, procure e leia os seguintes arquivos **se existirem**:
+Leia **se existirem**:
 
 - `.claude/project.md` — stack, ambientes, módulos
-- `.claude/known-issues.md` — **leitura prioritária**: verificar se o bug já foi visto antes
-- `.claude/architecture.md` — para entender fluxos e dependências
-- `.claude/conventions.md` — para sugerir correção dentro dos padrões
+- `.claude/known-issues.md` — **leitura prioritária**
+- `.claude/architecture.md` — fluxos e dependências
+- `.claude/conventions.md` — padrões do time
 
 ## Fase 0: Verificação em known-issues
 
-**Sempre** verifique primeiro o `.claude/known-issues.md`.
+Verifique `.claude/known-issues.md` primeiro.
 
-Se o bug bater com algo registrado:
-
-- Informe que o problema já foi documentado
-- Mostre a solução registrada
-- Pergunte se a solução anterior não resolveu ou se o contexto mudou
-
-Se não encontrar correspondência, prossiga com a investigação.
+- Se bater com algo registrado: mostre a solução e pergunte se o contexto mudou
+- Se não: prossiga
 
 ## Fase 1: Entendimento do bug
 
-Com base na descrição fornecida, estruture:
+**Esperado:** o que deveria acontecer  
+**Atual:** o que está acontecendo  
+**Ambiente:** inferir do contexto (local / HML / prod)  
+**Frequência:** sempre / às vezes / condição específica
 
-**Comportamento esperado:** o que deveria acontecer  
-**Comportamento atual:** o que está acontecendo  
-**Ambiente:** onde foi observado (local, HML, prod — inferir do contexto se não informado)  
-**Frequência:** sempre, às vezes, em condição específica (inferir se possível)
-
-Se algum ponto for ambíguo, faça **no máximo 2 perguntas** antes de prosseguir.
+Máximo 2 perguntas se algo for ambíguo.
 
 ## Fase 2: Hipóteses de causa
 
-Liste as hipóteses ordenadas da **mais provável para menos provável**, considerando:
-
-- O stack do projeto (`.claude/project.md`)
-- Padrões arquiteturais conhecidos (`.claude/architecture.md`)
-- Problemas já documentados em `.claude/known-issues.md`
-- A descrição do comportamento
-
-Para cada hipótese:
+Liste ordenadas da mais para menos provável:
 
 ```
-### Hipótese N — [título curto]
+### Hipótese N — [título]
 Probabilidade: Alta / Média / Baixa
-Explicação: por que isso poderia causar o comportamento descrito
-Como verificar: comando, log, trecho de código para inspecionar
+Causa: por que isso explicaria o comportamento
+Verificar: comando ou trecho para confirmar
 ```
 
 ## Fase 3: Plano de diagnóstico
 
-Passos concretos para confirmar ou descartar cada hipótese, em ordem de custo/complexidade crescente:
+Passos concretos em ordem crescente de custo:
 
-1. Começar pelo que pode ser verificado sem código (logs, banco, fila)
-2. Depois verificar código e fluxo
-3. Por último: reproduzir em ambiente controlado
+1. Logs, banco, fila (sem código)
+2. Código e fluxo
+3. Reprodução em ambiente controlado
 
-Preferir comandos que possam ser rodados **no terminal do pod** quando se tratar de ambiente K8s, evitando commits desnecessários.
+> Preferir comandos executáveis **no terminal do pod** para ambientes K8s.
 
 ## Fase 4: Plano de correção
 
-Após diagnóstico (ou com hipótese de alta confiança):
-
-- **Onde corrigir:** arquivo(s) e função(ões) específicas
-- **O que mudar:** descrição da mudança necessária
-- **Impacto colateral:** o que mais pode ser afetado pela correção
-- **Como testar:** passos para confirmar que o bug foi resolvido
+- **Onde:** arquivo(s) e função(ões)
+- **O que:** mudança necessária
+- **Colateral:** o que mais pode ser afetado
+- **Teste:** como confirmar a correção
 
 ## Fase 5: Registro em known-issues
 
-Se o bug for novo e tiver potencial de se repetir, adicione automaticamente em `.claude/known-issues.md`:
+Se bug novo com potencial recorrente, adicione em `.claude/known-issues.md`:
 
 ```markdown
-## [Categoria — título curto]
+## [Categoria — título]
 
-Descrição: comportamento observado e causa raiz.
-Contexto: onde e quando tende a aparecer.
+Descrição: comportamento e causa raiz.
+Contexto: onde tende a aparecer.
 Solução: como corrigir.
 Detectado em: [fix-bug]
 ```
 
-Informe o usuário: _"⚠️ Registrado em known-issues: [título]"_
-
-Se o arquivo não existir e houver algo para registrar, crie-o.
+Informe: _"⚠️ Registrado em known-issues: [título]"_
 
 ## Formato de saída
 
 ```
 ## Known Issues
-[Problema já documentado / Não encontrado — prosseguindo]
+[Encontrado com solução / Não encontrado]
 
 ## Entendimento do Bug
 Esperado: ...
@@ -113,14 +97,14 @@ Atual: ...
 Ambiente: ...
 
 ## Hipóteses
-[lista ordenada por probabilidade]
+[lista ordenada]
 
 ## Plano de Diagnóstico
 [passos numerados]
 
 ## Plano de Correção
-[após diagnóstico ou com alta confiança na hipótese]
+[após diagnóstico ou alta confiança na hipótese]
 
 ## Known Issues
-[novo registro adicionado, ou "Nenhum registro necessário"]
+[novo registro / "Nenhum registro necessário"]
 ```
