@@ -1,142 +1,142 @@
 ---
 name: audit-code
-description: Realiza auditoria completa de segurança, qualidade e infraestrutura antes de subir para produção. Use esta skill quando o usuário acionar /audit-code, ou quando pedir para auditar, verificar se algo está pronto para produção, ou fazer um checklist de qualidade. Sempre usar quando a mensagem começar com /audit-code.
+description: Performs a complete security, quality, and infrastructure audit before deploying to production. Use this skill when the user triggers /audit-code, or when asking to audit, verify if something is ready for production, or do a quality checklist. Always use when the message starts with /audit-code.
 ---
 
 # Skill: /audit-code
 
-## Acionamento
+## Trigger
 
-O usuário aciona com:
+The user triggers with:
 
 ```
-/audit-code "descrição do que será auditado"
+/audit-code "description of what will be audited"
 ```
 
-A descrição é opcional. Sem ela, a auditoria é feita sobre o contexto geral disponível (arquivos abertos, diff recente, ou conversa).
+The description is optional. Without it, the audit is performed on the available general context (open files, recent diff, or conversation).
 
-## Leitura de contexto do projeto
+## Reading project context
 
-Antes de qualquer análise, procure e leia os seguintes arquivos **se existirem**:
+Before any analysis, search for and read the following files **if they exist**:
 
-- `.claude/project.md` — stack, ambientes, módulos
-- `.claude/conventions.md` — padrões do time para verificar conformidade
-- `.claude/architecture.md` — padrões esperados de infraestrutura e código
-- `.claude/known-issues.md` — verificar se algum problema documentado está presente
+- `.claude/project.md` — stack, environments, modules
+- `.claude/conventions.md` — team standards to check compliance
+- `.claude/architecture.md` — expected infrastructure and code patterns
+- `.claude/known-issues.md` — check if any documented problems are present
 
-## Escopo da auditoria
+## Audit scope
 
-Execute todos os blocos abaixo. Para cada item, marque:
+Execute all blocks below. For each item, mark:
 
 - ✅ OK
-- ⚠️ Atenção (não bloqueia, mas deve ser revisado)
-- ❌ Crítico (bloqueia deploy)
-- ➖ Não aplicável
+- ⚠️ Attention (doesn't block, but should be reviewed)
+- ❌ Critical (blocks deployment)
+- ➖ Not applicable
 
 ---
 
-## Bloco 1: Segurança
+## Block 1: Security
 
-- [ ] Nenhuma credencial, secret ou API key hardcoded no código
-- [ ] Variáveis de ambiente sensíveis lidas de `.env` / secrets do K8s, nunca commitadas
-- [ ] Endpoints públicos com validação de input (Form Request / middleware)
-- [ ] Autenticação e autorização verificadas nas rotas novas ou modificadas
-- [ ] Uploads de arquivo com validação de tipo e tamanho
-- [ ] Queries construídas com bindings (nunca interpolação direta de input do usuário)
-- [ ] CORS configurado corretamente para o ambiente
+- [ ] No credentials, secrets, or API keys hardcoded in code
+- [ ] Sensitive environment variables read from `.env` / K8s secrets, never committed
+- [ ] Public endpoints with input validation (Form Request / middleware)
+- [ ] Authentication and authorization checked on new or modified routes
+- [ ] File uploads with type and size validation
+- [ ] Queries built with bindings (never direct interpolation of user input)
+- [ ] CORS correctly configured for the environment
 
-## Bloco 2: Banco de dados
+## Block 2: Database
 
-- [ ] Toda migration tem `down()` funcional
-- [ ] Migrations que alteram tabelas grandes têm estratégia para evitar lock (ex: `ADD COLUMN` com default null)
-- [ ] Novos índices criados para campos usados em `WHERE`, `JOIN` ou `ORDER BY` frequentes
-- [ ] Soft deletes implementados onde dados não devem ser perdidos permanentemente
-- [ ] Nenhum `DB::statement` com DDL sem proteção de transação ou verificação de ambiente
-- [ ] Seeds e factories não rodam em produção (guard por `App::environment`)
+- [ ] Every migration has functional `down()`
+- [ ] Migrations that alter large tables have strategy to avoid lock (e.g., `ADD COLUMN` with null default)
+- [ ] New indexes created for fields used in frequent `WHERE`, `JOIN`, or `ORDER BY`
+- [ ] Soft deletes implemented where data should not be permanently lost
+- [ ] No `DB::statement` with DDL without transaction protection or environment check
+- [ ] Seeds and factories don't run in production (guard with `App::environment`)
 
-## Bloco 3: Performance
+## Block 3: Performance
 
-- [ ] Ausência de N+1 queries (relações eager-loaded onde necessário)
-- [ ] Operações pesadas fora do ciclo de request (jobs, commands)
-- [ ] Jobs com chunk adequado para volumes grandes
-- [ ] Cache utilizado onde dados são lidos frequentemente e mudam pouco
-- [ ] Paginação em listagens que podem retornar muitos registros
+- [ ] No N+1 queries (relations eager-loaded where necessary)
+- [ ] Heavy operations outside request cycle (jobs, commands)
+- [ ] Jobs with appropriate chunk size for large volumes
+- [ ] Cache used where data is read frequently and changes infrequently
+- [ ] Pagination on listings that may return many records
 
-## Bloco 4: Filas e Jobs
+## Block 4: Queues and Jobs
 
-- [ ] Jobs implementam retry com backoff adequado
-- [ ] Jobs são idempotentes (reprocessar não gera efeito colateral)
-- [ ] Falhas de job logadas com contexto suficiente para debug
-- [ ] Fila correta configurada (não tudo na `default`)
-- [ ] Timeout de job definido explicitamente quando a operação pode ser longa
+- [ ] Jobs implement retry with appropriate backoff
+- [ ] Jobs are idempotent (reprocessing causes no side effect)
+- [ ] Job failures logged with sufficient context for debugging
+- [ ] Correct queue configured (not everything on `default`)
+- [ ] Job timeout explicitly set when operation can be long
 
-## Bloco 5: Infraestrutura e K8s
+## Block 5: Infrastructure and K8s
 
-- [ ] Variáveis de ambiente necessárias documentadas (`.env.example` atualizado)
-- [ ] Novos secrets adicionados ao Key Vault e ao manifesto K8s correspondente
-- [ ] Recursos de CPU/memória do pod adequados para a carga esperada
-- [ ] Health checks (liveness/readiness) não quebrados pela mudança
-- [ ] Nenhuma dependência nova de serviço externo sem fallback ou circuit breaker
-- [ ] Ingress/rotas novas documentadas se afetam DNS ou TLS
+- [ ] Required environment variables documented (`.env.example` updated)
+- [ ] New secrets added to Key Vault and corresponding K8s manifest
+- [ ] Pod CPU/memory resources adequate for expected load
+- [ ] Health checks (liveness/readiness) not broken by change
+- [ ] No new external service dependency without fallback or circuit breaker
+- [ ] New Ingress/routes documented if they affect DNS or TLS
 
-## Bloco 6: Qualidade de código
+## Block 6: Code quality
 
-- [ ] Sem código comentado desnecessário
-- [ ] Sem `console.log`, `dd()`, `dump()`, `var_dump()` esquecidos
-- [ ] Funções e classes com responsabilidade única
-- [ ] Nenhuma duplicação óbvia que deveria ser extraída
-- [ ] Cobertura de casos de erro (try/catch onde relevante, responses de erro adequados)
-- [ ] Convenções do time respeitadas (`.claude/conventions.md`)
+- [ ] No unnecessary commented code
+- [ ] No forgotten `console.log`, `dd()`, `dump()`, `var_dump()`
+- [ ] Functions and classes with single responsibility
+- [ ] No obvious duplication that should be extracted
+- [ ] Error cases covered (try/catch where relevant, appropriate error responses)
+- [ ] Team conventions respected (`.claude/conventions.md`)
 
-## Bloco 7: Testes e validação
+## Block 7: Tests and validation
 
-- [ ] Fluxo principal testado manualmente (ou automatizado)
-- [ ] Casos de erro testados (input inválido, serviço indisponível, permissão negada)
-- [ ] Rollback planejado caso o deploy precise ser revertido
-- [ ] Feature flag necessária para release gradual (se aplicável)
+- [ ] Main flow tested manually (or automated)
+- [ ] Error cases tested (invalid input, service unavailable, permission denied)
+- [ ] Rollback planned if deployment needs reverting
+- [ ] Feature flag needed for gradual rollout (if applicable)
 
 ---
 
-## Verificação de known-issues
+## Check known-issues
 
-Após os blocos, verifique se algum item do `.claude/known-issues.md` é relevante para o que está sendo auditado. Se sim, liste quais e confirme se foram tratados.
+After the blocks, check if any item in `.claude/known-issues.md` is relevant to what is being audited. If yes, list which ones and confirm if they were addressed.
 
-## Registro em known-issues
+## Register in known-issues
 
-Se a auditoria revelar um problema novo com potencial de ser recorrente, adicione em `.claude/known-issues.md`:
+If the audit reveals a new problem with potential to be recurring, add to `.claude/known-issues.md`:
 
 ```markdown
-## [Categoria — título curto]
+## [Category — short title]
 
-Descrição: problema encontrado.
-Contexto: onde tende a aparecer.
-Solução: como prevenir ou corrigir.
-Detectado em: [audit-code]
+Description: problem found.
+Context: where it tends to appear.
+Solution: how to prevent or fix.
+Detected in: [audit-code]
 ```
 
-Informe o usuário: _"⚠️ Registrado em known-issues: [título]"_
+Inform the user: _"⚠️ Recorded in known-issues: [title]"_
 
-## Parecer final
+## Final verdict
 
 ```
-## Resumo da Auditoria
+## Audit Summary
 
-Críticos ❌: N
-Atenção  ⚠️: N
+Critical ❌: N
+Attention ⚠️: N
 OK       ✅: N
 N/A      ➖: N
 
-## Itens Críticos (se houver)
-[lista numerada e acionável]
+## Critical Items (if any)
+[numbered and actionable list]
 
-## Itens de Atenção (se houver)
-[lista]
+## Attention Items (if any)
+[list]
 
 ## Known Issues
-[novos registros, ou "Nenhum novo problema registrado"]
+[new records, or "No new issues recorded"]
 
-## Veredito
-✅ PRONTO PARA DEPLOY
-⚠️ DEPLOY COM RESSALVAS — resolver atenções em seguida
-❌ BLOQUEADO — resolver críticos antes do deploy
+## Verdict
+✅ READY FOR DEPLOYMENT
+⚠️ DEPLOY WITH CAVEATS — resolve attention items after
+❌ BLOCKED — resolve critical items before deployment
 ```

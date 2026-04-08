@@ -67,13 +67,9 @@ seu-projeto/
 └── ... (resto do projeto)
 ```
 
-### Setup rápido via template
+### Setup manual
 
-```bash
-cp -r project-template/.claude ./
-```
-
-Os arquivos já vêm com comentários guiando o preenchimento.
+Crie a pasta `.claude/` na raiz do seu projeto e adicione os arquivos `project.md`, `conventions.md`, `architecture.md` e `known-issues.md`. Use a estrutura esperada acima como guia.
 
 ### Arquivos de contexto
 
@@ -194,13 +190,9 @@ your-project/
 └── ... (rest of project)
 ```
 
-### Quick setup via template
+### Manual setup
 
-```bash
-cp -r project-template/.claude ./
-```
-
-The files include inline comments guiding what to fill in.
+Create the `.claude/` folder at your project root and add the files `project.md`, `conventions.md`, `architecture.md`, and `known-issues.md`. Use the expected structure above as a guide.
 
 ### Context files
 

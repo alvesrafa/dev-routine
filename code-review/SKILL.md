@@ -1,113 +1,113 @@
 ---
 name: code-review
-description: Realiza code review completo de implementações. Use esta skill quando o usuário acionar /code-review, ou quando pedir para revisar código, verificar uma implementação, ou analisar um PR. Sempre usar quando a mensagem começar com /code-review.
+description: Performs a complete code review of implementations. Use this skill when the user triggers /code-review, or when asking to review code, validate an implementation, or analyze a PR. Always use when the message starts with /code-review.
 ---
 
 # Skill: /code-review
 
-## Acionamento
+## Trigger
 
 ```
-/code-review "descrição do que foi implementado"
+/code-review "description of what was implemented"
 ```
 
-A descrição é opcional mas permite validar o fluxo antes de analisar o código.
+The description is optional but allows validating the flow before analyzing the code.
 
-## Diretriz de resposta
+## Response guidelines
 
-Seja completo mas sucinto. Omita explicações óbvias, vá direto ao ponto. Economize tokens sem perder precisão técnica. Prefira bullets curtos a parágrafos.
+Be comprehensive but concise. Omit obvious explanations, get straight to the point. Save tokens without losing technical precision. Prefer short bullets to paragraphs.
 
-## Leitura de contexto do projeto
+## Reading project context
 
-Leia **se existirem**:
+Read **if they exist**:
 
-- `.claude/project.md` — stack, ambientes, módulos
-- `.claude/conventions.md` — padrões obrigatórios do time
-- `.claude/architecture.md` — padrões arquiteturais esperados
-- `.claude/known-issues.md` — para identificar recorrências
+- `.claude/project.md` — stack, environments, modules
+- `.claude/conventions.md` — mandatory team standards
+- `.claude/architecture.md` — expected architectural patterns
+- `.claude/known-issues.md` — to identify recurring issues
 
-## Fase 1: Validação do fluxo descrito (se descrição fornecida)
+## Phase 1: Validation of described flow (if description provided)
 
-Antes de analisar o código:
+Before analyzing the code:
 
-1. Entenda o fluxo descrito
-2. Identifique gaps lógicos, casos não cobertos, abordagem questionável
-3. Emita parecer: ✅ Coerente / ⚠️ Com ressalvas / ❌ Problemático
+1. Understand the described flow
+2. Identify logical gaps, uncovered cases, questionable approach
+3. Issue verdict: ✅ Sound / ⚠️ With caveats / ❌ Problematic
 
-Não reprove por preferência estética — apenas por problemas funcionais ou de segurança reais.
+Do not reject based on aesthetic preference — only real functional or security problems.
 
-## Fase 2: Análise do código
+## Phase 2: Code analysis
 
-### 🔴 Crítico — Bloqueia o PR
+### 🔴 Critical — Blocks the PR
 
-- Vulnerabilidades de segurança (SQL injection, dados expostos, auth bypassável)
-- Perda de dados (delete sem soft delete quando esperado, truncate acidental)
-- Race conditions em jobs/filas
-- Migrations sem `down()` ou que causam lock em tabela grande
-- Secrets ou credenciais hardcoded
-- Quebra de contrato de API sem versionamento
-- Lógica que contradiz diretamente o requisito descrito
+- Security vulnerabilities (SQL injection, exposed data, bypassable auth)
+- Data loss (delete without soft delete when expected, accidental truncate)
+- Race conditions in jobs/queues
+- Migrations without `down()` or that lock large tables
+- Hardcoded secrets or credentials
+- Breaking API contract without versioning
+- Logic that directly contradicts the stated requirement
 
-### 🟡 Importante — Deve ser corrigido antes do merge
+### 🟡 Important — Must be fixed before merge
 
-- Violação das convenções do time (`.claude/conventions.md`)
-- Ausência de tratamento de erro em pontos críticos
-- Query N+1 ou operação pesada dentro de loop
-- Job/comando sem idempotência quando deveria ter
-- Falta de validação de input em endpoint público
-- Violação de padrões arquiteturais do projeto
+- Violation of team conventions (`.claude/conventions.md`)
+- Missing error handling at critical points
+- N+1 queries or heavy operations inside loops
+- Job/command not idempotent when it should be
+- Missing input validation on public endpoint
+- Violation of project architectural patterns
 
-### 🟢 Sugestão — Melhoria opcional
+### 🟢 Suggestion — Optional improvement
 
-- Oportunidade de reuso
-- Nomenclatura confusa mas funcional
-- Simplificação possível sem risco
+- Opportunity for reuse
+- Confusing but functional naming
+- Possible simplification without risk
 
-## Fase 3: Detecção de problemas recorrentes
+## Phase 3: Detection of recurring issues
 
-Verifique se algum problema encontrado já está em `.claude/known-issues.md` ou é novo com potencial recorrente.
+Check if any problem found already exists in `.claude/known-issues.md` or is new with recurring potential.
 
-### Atualização automática do known-issues
+### Automatic known-issues update
 
-Se novo e recorrente, adicione em `.claude/known-issues.md`:
+If new and recurring, add to `.claude/known-issues.md`:
 
 ```markdown
-## [Categoria do problema]
+## [Problem Category]
 
-Descrição: problema encontrado.
-Contexto: onde tende a aparecer.
-Solução: como resolver ou prevenir.
-Detectado em: [code-review]
+Description: problem found.
+Context: where it tends to appear.
+Solution: how to resolve or prevent.
+Detected in: [code-review]
 ```
 
-Informe: _"⚠️ Adicionado em known-issues: [título]"_
+Inform: _"⚠️ Added to known-issues: [title]"_
 
-Se `.claude/known-issues.md` não existir e houver algo para registrar, crie o arquivo.
+If `.claude/known-issues.md` doesn't exist and there's something to record, create the file.
 
-## Fase 4: Parecer final
+## Phase 4: Final verdict
 
-**✅ APROVADO** — Sem críticos  
-**⚠️ APROVADO COM RESSALVAS** — Pode abrir PR, itens amarelos devem ser resolvidos  
-**❌ BLOQUEADO** — Itens críticos precisam ser resolvidos antes do PR
+**✅ APPROVED** — No critical issues  
+**⚠️ APPROVED WITH CAVEATS** — Can open PR, yellow items must be resolved  
+**❌ BLOCKED** — Critical items must be resolved before PR
 
-## Formato de saída
+## Output format
 
 ```
-## Validação do Fluxo
-[parecer / "Sem descrição fornecida"]
+## Flow Validation
+[verdict / "No description provided"]
 
-## Itens Críticos 🔴
-[lista ou "Nenhum"]
+## Critical Items 🔴
+[list or "None"]
 
-## Itens Importantes 🟡
-[lista ou "Nenhum"]
+## Important Items 🟡
+[list or "None"]
 
-## Sugestões 🟢
-[lista ou "Nenhum"]
+## Suggestions 🟢
+[list or "None"]
 
 ## Known Issues
-[novos itens adicionados / "Nenhum novo problema registrado"]
+[new items added / "No new issues recorded"]
 
-## Veredito
-[✅ / ⚠️ / ❌] — justificativa em 1 linha
+## Verdict
+[✅ / ⚠️ / ❌] — justification in 1 line
 ```

@@ -1,110 +1,110 @@
 ---
 name: fix-bug
-description: Guia a investigação e correção de bugs de forma estruturada. Use esta skill quando o usuário acionar /fix-bug com uma descrição, ou quando reportar um erro, comportamento inesperado, ou pedir para debugar algo. Sempre usar quando a mensagem começar com /fix-bug.
+description: Guides bug investigation and fixing in a structured way. Use this skill when the user triggers /fix-bug with a description, or when reporting an error, unexpected behavior, or asking to debug something. Always use when the message starts with /fix-bug.
 ---
 
 # Skill: /fix-bug
 
-## Acionamento
+## Trigger
 
 ```
-/fix-bug "descrição do comportamento inesperado"
+/fix-bug "description of unexpected behavior"
 ```
 
-A descrição é crítica para qualidade da investigação. Sem ela, peça antes de continuar.
+The description is critical for investigation quality. Without it, ask before continuing.
 
-## Diretriz de resposta
+## Response guidelines
 
-Seja completo mas sucinto. Omita explicações óbvias, evite repetição, vá direto ao ponto. Economize tokens sem perder precisão técnica.
+Be comprehensive but concise. Omit obvious explanations, avoid repetition, get straight to the point. Save tokens without losing technical precision.
 
-## Leitura de contexto do projeto
+## Reading project context
 
-Leia **se existirem**:
+Read **if they exist**:
 
-- `.claude/project.md` — stack, ambientes, módulos
-- `.claude/known-issues.md` — **leitura prioritária**
-- `.claude/architecture.md` — fluxos e dependências
-- `.claude/conventions.md` — padrões do time
+- `.claude/project.md` — stack, environments, modules
+- `.claude/known-issues.md` — **priority read**
+- `.claude/architecture.md` — flows and dependencies
+- `.claude/conventions.md` — team standards
 
-## Fase 0: Verificação em known-issues
+## Phase 0: Check known-issues first
 
-Verifique `.claude/known-issues.md` primeiro.
+Check `.claude/known-issues.md` first.
 
-- Se bater com algo registrado: mostre a solução e pergunte se o contexto mudou
-- Se não: prossiga
+- If it matches something recorded: show the solution and ask if context changed
+- If not: proceed
 
-## Fase 1: Entendimento do bug
+## Phase 1: Bug understanding
 
-**Esperado:** o que deveria acontecer  
-**Atual:** o que está acontecendo  
-**Ambiente:** inferir do contexto (local / HML / prod)  
-**Frequência:** sempre / às vezes / condição específica
+**Expected:** what should happen  
+**Current:** what is happening  
+**Environment:** infer from context (local / staging / prod)  
+**Frequency:** always / sometimes / specific condition
 
-Máximo 2 perguntas se algo for ambíguo.
+Ask maximum 2 questions if something is ambiguous.
 
-## Fase 2: Hipóteses de causa
+## Phase 2: Root cause hypotheses
 
-Liste ordenadas da mais para menos provável:
+List ordered from most to least likely:
 
 ```
-### Hipótese N — [título]
-Probabilidade: Alta / Média / Baixa
-Causa: por que isso explicaria o comportamento
-Verificar: comando ou trecho para confirmar
+### Hypothesis N — [title]
+Probability: High / Medium / Low
+Cause: why this would explain the behavior
+Verify: command or code snippet to confirm
 ```
 
-## Fase 3: Plano de diagnóstico
+## Phase 3: Diagnostic plan
 
-Passos concretos em ordem crescente de custo:
+Concrete steps in order of increasing cost:
 
-1. Logs, banco, fila (sem código)
-2. Código e fluxo
-3. Reprodução em ambiente controlado
+1. Logs, database, queue (no code)
+2. Code and flow
+3. Reproduction in controlled environment
 
-> Preferir comandos executáveis **no terminal do pod** para ambientes K8s.
+> Prefer commands executable **in pod terminal** for K8s environments.
 
-## Fase 4: Plano de correção
+## Phase 4: Fix plan
 
-- **Onde:** arquivo(s) e função(ões)
-- **O que:** mudança necessária
-- **Colateral:** o que mais pode ser afetado
-- **Teste:** como confirmar a correção
+- **Where:** file(s) and function(s)
+- **What:** necessary change
+- **Side effects:** what else might be affected
+- **Test:** how to confirm the fix
 
-## Fase 5: Registro em known-issues
+## Phase 5: Register in known-issues
 
-Se bug novo com potencial recorrente, adicione em `.claude/known-issues.md`:
+If new bug with recurring potential, add to `.claude/known-issues.md`:
 
 ```markdown
-## [Categoria — título]
+## [Category — title]
 
-Descrição: comportamento e causa raiz.
-Contexto: onde tende a aparecer.
-Solução: como corrigir.
-Detectado em: [fix-bug]
+Description: behavior and root cause.
+Context: where it tends to appear.
+Solution: how to fix.
+Detected in: [fix-bug]
 ```
 
-Informe: _"⚠️ Registrado em known-issues: [título]"_
+Inform: _"⚠️ Recorded in known-issues: [title]"_
 
-## Formato de saída
+## Output format
 
 ```
 ## Known Issues
-[Encontrado com solução / Não encontrado]
+[Found with solution / Not found]
 
-## Entendimento do Bug
-Esperado: ...
-Atual: ...
-Ambiente: ...
+## Bug Understanding
+Expected: ...
+Current: ...
+Environment: ...
 
-## Hipóteses
-[lista ordenada]
+## Hypotheses
+[ordered list]
 
-## Plano de Diagnóstico
-[passos numerados]
+## Diagnostic Plan
+[numbered steps]
 
-## Plano de Correção
-[após diagnóstico ou alta confiança na hipótese]
+## Fix Plan
+[after diagnosis or high confidence in hypothesis]
 
 ## Known Issues
-[novo registro / "Nenhum registro necessário"]
+[new record / "No registration needed"]
 ```

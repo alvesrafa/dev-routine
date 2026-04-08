@@ -1,95 +1,91 @@
 ---
 name: plan-task
-description: Planeja tarefas de desenvolvimento de forma estruturada para times. Use esta skill quando o usuário acionar /plan-task com uma descrição, ou quando pedir para planejar, detalhar, ou quebrar uma tarefa de desenvolvimento em etapas. Sempre usar quando a mensagem começar com /plan-task.
+description: Plans development tasks in a structured way for teams. Use this skill when the user triggers /plan-task with a description, or when asking to plan, detail, or break down a development task into steps. Always use when the message starts with /plan-task.
 ---
 
 # Skill: /plan-task
 
-## Acionamento
+## Trigger
 
 ```
-/plan-task "descrição da tarefa"
+/plan-task "task description"
 ```
 
-Sem descrição, peça antes de continuar.
+Without a description, ask before continuing.
 
-## Diretriz de resposta
+## Response guidelines
 
-Seja completo mas sucinto. Omita explicações óbvias, prefira listas e diagramas a parágrafos. Economize tokens sem perder precisão técnica.
+Be comprehensive but concise. Omit obvious explanations, prefer lists and diagrams to paragraphs. Avoid unnecessary text.
 
-## Leitura de contexto do projeto
+## Reading project context
 
-Leia **se existirem**:
+Read **if they exist**:
 
-- `.claude/project.md` — stack, ambientes, módulos
-- `.claude/conventions.md` — padrões do time
-- `.claude/architecture.md` — decisões técnicas
-- `.claude/known-issues.md` — armadilhas conhecidas
+- `.claude/project.md` — stack, environments, modules
+- `.claude/conventions.md` — team standards
+- `.claude/architecture.md` — technical decisions
+- `.claude/known-issues.md` — known pitfalls
 
-Se não existirem, informe e continue com contexto genérico.
+If they don't exist, inform and continue with generic context.
 
-## O que produzir
+## What to produce
 
-### 1. Entendimento da tarefa
+### 1. Task understanding
 
-Reformule em 2–3 linhas. Liste premissas assumidas se houver ambiguidade.
+Rephrase in 2–3 lines. List assumed premises if there's ambiguity.
 
-### 2. Fluxograma da implementação
+### 2. Implementation flowchart
 
-Gere um diagrama Mermaid representando o fluxo principal da tarefa. Use `flowchart TD` para tarefas sequenciais ou `flowchart LR` para fluxos de dados/integrações. Escolha o tipo mais adequado ao contexto.
+Generate a Mermaid diagram representing the main task flow. Use `flowchart TD` for sequential tasks or `flowchart LR` for data/integration flows. Choose the type most suitable to the context.
 
-Exemplos de uso:
+Usage examples:
 
-- Feature com múltiplos passos → `flowchart TD` com decisões e ramificações
-- Integração entre serviços → `flowchart LR` com sistemas como nós
-- Job assíncrono → sequência com filas e estados
+- Feature with multiple steps → `flowchart TD` with decisions and branches
+- Integration between services → `flowchart LR` with systems as nodes
+- Async job → sequence with queues and states
 
 ```mermaid
 flowchart TD
-    A[Início] --> B{Condição}
-    B -->|Sim| C[Passo 1]
-    B -->|Não| D[Passo alternativo]
-    C --> E[Fim]
+    A[Start] --> B{Condition}
+    B -->|Yes| C[Step 1]
+    B -->|No| D[Alternative step]
+    C --> E[End]
     D --> E
 ```
 
-### 3. Arquivos e módulos envolvidos
+### 3. Files and modules involved
 
-| Arquivo/Pasta                            | Ação      | Motivo        |
-| ---------------------------------------- | --------- | ------------- |
-| `app/Models/Foo.php`                     | Criar     | Novo model    |
-| `app/Http/Controllers/FooController.php` | Modificar | Novo endpoint |
+| File/Folder                              | Action   | Reason      |
+| ---------------------------------------- | -------- | ----------- |
+| `app/Models/Foo.php`                     | Create   | New model   |
+| `app/Http/Controllers/FooController.php` | Modify   | New endpoint|
 
-### 4. Dependências e pré-requisitos
+### 4. Dependencies and prerequisites
 
-O que precisa existir antes de começar: migrations, serviços externos, permissões, feature flags.
+What needs to exist before starting: migrations, external services, permissions, feature flags.
 
-### 5. Checklist de implementação
+### 5. Implementation checklist
 
 ```
-[ ] Passo 1 — descrição clara
-[ ] Passo 2 — descrição clara
+[ ] Step 1 — clear description
+[ ] Step 2 — clear description
 ...
 ```
 
-Cada item deve ser pequeno o suficiente para ser feito e testado isoladamente.
+Each item should be small enough to be done and tested independently.
 
-### 6. Edge cases e riscos
+### 6. Edge cases and risks
 
-Liste apenas os relevantes, por impacto. Se houver fluxo de erro complexo, adicione um segundo diagrama Mermaid.
+List only the relevant ones, by impact. If there's complex error flow, add a second Mermaid diagram.
 
-### 7. Critérios de aceitação
+### 7. Acceptance criteria
 
-Como saber que está pronto. Verificável, não subjetivo.
+How to know it's done. Verifiable, not subjective.
 
-### 8. Estimativa
+## Behavior with description
 
-Otimista / Realista / Pessimista. Justifique se > 1 dia.
+Use the description to:
 
-## Comportamento com descrição
-
-Use a descrição para:
-
-- Identificar tipo (feature / bug / refactor / infra)
-- Ajustar nível de detalhe
-- Detectar módulos pelo nome e cruzar com `.claude/architecture.md`
+- Identify type (feature / bug / refactor / infra)
+- Adjust level of detail
+- Detect modules by name and cross-reference with `.claude/architecture.md`
