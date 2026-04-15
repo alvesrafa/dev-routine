@@ -24,9 +24,29 @@ Before any analysis, search for and read the following files **if they exist**:
 - `.claude/architecture.md` — expected infrastructure and code patterns
 - `.claude/known-issues.md` — check if any documented problems are present
 
-## Audit scope
+## Stage 0: Clarification
 
-Execute all blocks below. For each item, mark:
+Before auditing, check if the scope is clear enough to apply the right stages.
+
+Ask up to 3 targeted questions if any of the following are true:
+- No description was provided AND no diff/files are visible in context
+- The deployment target is unknown (K8s, serverless, bare VM) and Stage 5 (Infrastructure) is relevant
+- The audit intent is unclear — full pre-deployment audit vs. targeted review of a specific change
+
+Do not ask about code style or team preferences. Only ask when missing context would cause entire stages to be skipped or incorrectly applied.
+
+After asking, wait for the user's reply before proceeding to Stage 1.
+If the user says "skip questions" or "audit everything", proceed with all 7 stages.
+
+## Stage execution
+
+By default, all 7 stages execute in one response.
+
+The user can restrict this: "audit only Stages 1 and 2", "stop after Stage 3", "skip to Stage 5". Respect this literally.
+
+If the user asks for a targeted audit (e.g., "audit the jobs only"), map their request to the relevant stage(s) and run only those.
+
+For each item in every stage, mark:
 
 - ✅ OK
 - ⚠️ Attention (doesn't block, but should be reviewed)
@@ -35,7 +55,7 @@ Execute all blocks below. For each item, mark:
 
 ---
 
-## Block 1: Security
+## Stage 1: Security
 
 - [ ] No credentials, secrets, or API keys hardcoded in code
 - [ ] Sensitive environment variables read from `.env` / K8s secrets, never committed
@@ -45,7 +65,10 @@ Execute all blocks below. For each item, mark:
 - [ ] Queries built with bindings (never direct interpolation of user input)
 - [ ] CORS correctly configured for the environment
 
-## Block 2: Database
+If any Security item is marked ❌ Critical, after completing Stage 1 ask:
+"Found critical security issue(s). Proceed with remaining audit stages, or stop here to address security first?"
+
+## Stage 2: Database
 
 - [ ] Every migration has functional `down()`
 - [ ] Migrations that alter large tables have strategy to avoid lock (e.g., `ADD COLUMN` with null default)
@@ -54,7 +77,7 @@ Execute all blocks below. For each item, mark:
 - [ ] No `DB::statement` with DDL without transaction protection or environment check
 - [ ] Seeds and factories don't run in production (guard with `App::environment`)
 
-## Block 3: Performance
+## Stage 3: Performance
 
 - [ ] No N+1 queries (relations eager-loaded where necessary)
 - [ ] Heavy operations outside request cycle (jobs, commands)
@@ -62,7 +85,7 @@ Execute all blocks below. For each item, mark:
 - [ ] Cache used where data is read frequently and changes infrequently
 - [ ] Pagination on listings that may return many records
 
-## Block 4: Queues and Jobs
+## Stage 4: Queues and Jobs
 
 - [ ] Jobs implement retry with appropriate backoff
 - [ ] Jobs are idempotent (reprocessing causes no side effect)
@@ -70,7 +93,7 @@ Execute all blocks below. For each item, mark:
 - [ ] Correct queue configured (not everything on `default`)
 - [ ] Job timeout explicitly set when operation can be long
 
-## Block 5: Infrastructure and K8s
+## Stage 5: Infrastructure and K8s
 
 - [ ] Required environment variables documented (`.env.example` updated)
 - [ ] New secrets added to Key Vault and corresponding K8s manifest
@@ -79,7 +102,7 @@ Execute all blocks below. For each item, mark:
 - [ ] No new external service dependency without fallback or circuit breaker
 - [ ] New Ingress/routes documented if they affect DNS or TLS
 
-## Block 6: Code quality
+## Stage 6: Code quality
 
 - [ ] No unnecessary commented code
 - [ ] No forgotten `console.log`, `dd()`, `dump()`, `var_dump()`
@@ -88,7 +111,7 @@ Execute all blocks below. For each item, mark:
 - [ ] Error cases covered (try/catch where relevant, appropriate error responses)
 - [ ] Team conventions respected (`.claude/conventions.md`)
 
-## Block 7: Tests and validation
+## Stage 7: Tests and validation
 
 - [ ] Main flow tested manually (or automated)
 - [ ] Error cases tested (invalid input, service unavailable, permission denied)
@@ -99,7 +122,7 @@ Execute all blocks below. For each item, mark:
 
 ## Check known-issues
 
-After the blocks, check if any item in `.claude/known-issues.md` is relevant to what is being audited. If yes, list which ones and confirm if they were addressed.
+After the stages, check if any item in `.claude/known-issues.md` is relevant to what is being audited. If yes, list which ones and confirm if they were addressed.
 
 ## Register in known-issues
 
@@ -121,10 +144,16 @@ Inform the user: _"⚠️ Recorded in known-issues: [title]"_
 ```
 ## Audit Summary
 
-Critical ❌: N
-Attention ⚠️: N
-OK       ✅: N
-N/A      ➖: N
+| Stage | Name | ❌ | ⚠️ | ✅ | ➖ |
+|-------|------|----|----|----|-----|
+| 1 | Security | N | N | N | N |
+| 2 | Database | N | N | N | N |
+| 3 | Performance | N | N | N | N |
+| 4 | Queues/Jobs | N | N | N | N |
+| 5 | Infrastructure | N | N | N | N |
+| 6 | Code Quality | N | N | N | N |
+| 7 | Tests | N | N | N | N |
+| **Total** | | **N** | **N** | **N** | **N** |
 
 ## Critical Items (if any)
 [numbered and actionable list]

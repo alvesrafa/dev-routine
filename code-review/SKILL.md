@@ -26,9 +26,32 @@ Read **if they exist**:
 - `.claude/architecture.md` — expected architectural patterns
 - `.claude/known-issues.md` — to identify recurring issues
 
-## Phase 1: Validation of described flow (if description provided)
+## Stage 0: Clarification
 
-Before analyzing the code:
+Before reviewing, check if there is sufficient context to perform an accurate review.
+
+Ask up to 3 targeted questions if any of the following are true:
+- No description was provided AND no open files / diff / PR context is visible
+- The described behavior contradicts what the code appears to do (needs confirmation of intent)
+- The review scope is undefined (e.g., a very large diff with no indication of which areas matter most)
+
+Do not ask style or preference questions. Only ask when missing context would produce an inaccurate review.
+
+After asking, wait for the user's reply before proceeding to Stage 1.
+If the user says "skip questions" or "just review", proceed immediately.
+
+## Stage execution
+
+By default, all stages run sequentially in one response.
+
+The user can say "do only Stage 1 and 2", "stop after Stage 2", "skip to Stage 4". Respect this literally.
+
+If during a stage a critical ambiguity appears (e.g., a pattern that could be intentional or a bug), flag it inline as:
+> Question before continuing: [question]. If not answered, proceeding with conservative assumption: [stated assumption].
+
+## Stage 1: Flow validation
+
+Before analyzing the code (only if description was provided):
 
 1. Understand the described flow
 2. Identify logical gaps, uncovered cases, questionable approach
@@ -36,7 +59,7 @@ Before analyzing the code:
 
 Do not reject based on aesthetic preference — only real functional or security problems.
 
-## Phase 2: Code analysis
+## Stage 2: Code analysis
 
 ### 🔴 Critical — Blocks the PR
 
@@ -63,7 +86,9 @@ Do not reject based on aesthetic preference — only real functional or security
 - Confusing but functional naming
 - Possible simplification without risk
 
-## Phase 3: Detection of recurring issues
+If more than 3 critical items are found and the scope of change is unclear, pause after listing them and ask: "Found N critical items. Continue with Important/Suggestion items, or stop here to address these first?"
+
+## Stage 3: Recurring issues detection
 
 Check if any problem found already exists in `.claude/known-issues.md` or is new with recurring potential.
 
@@ -84,30 +109,29 @@ Inform: _"⚠️ Added to known-issues: [title]"_
 
 If `.claude/known-issues.md` doesn't exist and there's something to record, create the file.
 
-## Phase 4: Final verdict
+## Stage 4: Final verdict
 
-**✅ APPROVED** — No critical issues  
-**⚠️ APPROVED WITH CAVEATS** — Can open PR, yellow items must be resolved  
+**✅ APPROVED** — No critical issues
+**⚠️ APPROVED WITH CAVEATS** — Can open PR, yellow items must be resolved
 **❌ BLOCKED** — Critical items must be resolved before PR
 
 ## Output format
 
 ```
-## Flow Validation
+## Stage 1 — Flow Validation
 [verdict / "No description provided"]
 
-## Critical Items 🔴
+## Stage 2 — Code Analysis
+### Critical 🔴
+[list or "None"]
+### Important 🟡
+[list or "None"]
+### Suggestions 🟢
 [list or "None"]
 
-## Important Items 🟡
-[list or "None"]
-
-## Suggestions 🟢
-[list or "None"]
-
-## Known Issues
+## Stage 3 — Known Issues
 [new items added / "No new issues recorded"]
 
-## Verdict
+## Stage 4 — Verdict
 [✅ / ⚠️ / ❌] — justification in 1 line
 ```

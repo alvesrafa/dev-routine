@@ -26,23 +26,49 @@ Read **if they exist**:
 - `.claude/architecture.md` — flows and dependencies
 - `.claude/conventions.md` — team standards
 
-## Phase 0: Check known-issues first
+## Stage 0: Clarification
+
+Before investigating, check if the description is actionable.
+
+Ask up to 3 targeted questions if any of the following are true:
+- No description was provided
+- Expected vs. current behavior cannot be distinguished from the description
+- The environment (local / staging / prod) is not determinable and matters for the hypotheses
+- An error message or stack trace exists but was not shared
+
+Only ask for facts that directly narrow the hypothesis space. No style or preference questions.
+
+After asking, wait for the user's reply before proceeding to Stage 1.
+If the user says "skip questions" or "just investigate", proceed with available context.
+
+## Stage execution
+
+By default, all stages run sequentially in one response.
+
+The user can say "do only Stage 1 and 2", "stop after Stage 3", "skip to Stage 5". Respect this literally.
+
+If a mid-stage ambiguity requires input, emit the completed portion of the current stage, then write:
+> Paused at Stage N. [Question]. Reply to continue.
+
+## Stage 1: Known issues check
 
 Check `.claude/known-issues.md` first.
 
 - If it matches something recorded: show the solution and ask if context changed
-- If not: proceed
+- If not: proceed to Stage 2
 
-## Phase 1: Bug understanding
+Output: _"Checking known-issues..."_ followed by result.
 
-**Expected:** what should happen  
-**Current:** what is happening  
-**Environment:** infer from context (local / staging / prod)  
+## Stage 2: Bug understanding
+
+**Expected:** what should happen
+**Current:** what is happening
+**Environment:** infer from context (local / staging / prod)
 **Frequency:** always / sometimes / specific condition
 
-Ask maximum 2 questions if something is ambiguous.
+If after rephrasing the bug you identify a fundamental ambiguity that makes Stages 3–5 unreliable, pause here and ask the user to confirm before continuing.
 
-## Phase 2: Root cause hypotheses
+## Stage 3: Root cause hypotheses
 
 List ordered from most to least likely:
 
@@ -53,7 +79,9 @@ Cause: why this would explain the behavior
 Verify: command or code snippet to confirm
 ```
 
-## Phase 3: Diagnostic plan
+If two hypotheses have equal probability and the distinction requires information only the user has (e.g., recent deploys, infra changes), pause after listing them and ask one targeted question before Stage 4.
+
+## Stage 4: Diagnostic plan
 
 Concrete steps in order of increasing cost:
 
@@ -63,14 +91,20 @@ Concrete steps in order of increasing cost:
 
 > Prefer commands executable **in pod terminal** for K8s environments.
 
-## Phase 4: Fix plan
+## Stage 5: Fix plan
+
+Only produce Stage 5 if either:
+- At least one hypothesis from Stage 3 has High probability, OR
+- The user has explicitly confirmed which hypothesis is correct.
+
+If neither is true, output: "Stage 5 on hold — complete Stage 4 steps and share results to proceed."
 
 - **Where:** file(s) and function(s)
 - **What:** necessary change
 - **Side effects:** what else might be affected
 - **Test:** how to confirm the fix
 
-## Phase 5: Register in known-issues
+## Stage 6: Register in known-issues
 
 If new bug with recurring potential, add to `.claude/known-issues.md`:
 
@@ -88,23 +122,24 @@ Inform: _"⚠️ Recorded in known-issues: [title]"_
 ## Output format
 
 ```
-## Known Issues
+## Stage 1 — Known Issues
 [Found with solution / Not found]
 
-## Bug Understanding
+## Stage 2 — Bug Understanding
 Expected: ...
 Current: ...
 Environment: ...
+Frequency: ...
 
-## Hypotheses
+## Stage 3 — Hypotheses
 [ordered list]
 
-## Diagnostic Plan
+## Stage 4 — Diagnostic Plan
 [numbered steps]
 
-## Fix Plan
-[after diagnosis or high confidence in hypothesis]
+## Stage 5 — Fix Plan
+[after diagnosis or high-confidence hypothesis / "On hold — see Stage 4"]
 
-## Known Issues
+## Stage 6 — Known Issues Registration
 [new record / "No registration needed"]
 ```

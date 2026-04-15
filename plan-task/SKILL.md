@@ -28,13 +28,36 @@ Read **if they exist**:
 
 If they don't exist, inform and continue with generic context.
 
-## What to produce
+## Stage 0: Clarification
 
-### 1. Task understanding
+Before producing the plan, check if the description is sufficient.
+
+Ask up to 3 targeted questions if any of the following are true:
+- The task type cannot be determined (feature / bug / refactor / infra)
+- The affected module or service is not identifiable from the description or `.claude/architecture.md`
+- The scope boundary is ambiguous (e.g., "improve performance" with no target component named)
+
+Do not ask about implementation preferences — only ask for facts needed to scope the plan correctly.
+
+After asking, wait for the user's reply before proceeding to Stage 1.
+If the description is clear enough, skip Stage 0 silently and proceed.
+
+## Stage execution
+
+By default, all stages run sequentially in one response.
+
+The user can say "do only Stage 1", "stop after Stage 3", "skip to Stage 5". Respect this literally.
+
+If a mid-stage ambiguity requires input, emit the completed portion of the current stage, then write:
+> Paused at Stage N. [Question]. Reply to continue.
+
+## Stage 1: Task understanding
 
 Rephrase in 2–3 lines. List assumed premises if there's ambiguity.
 
-### 2. Implementation flowchart
+If after rephrasing you identify a fundamental ambiguity that would make Stages 2–7 unreliable (e.g., two mutually exclusive interpretations of scope), pause here and ask the user to confirm before continuing.
+
+## Stage 2: Implementation flowchart
 
 Generate a Mermaid diagram representing the main task flow. Use `flowchart TD` for sequential tasks or `flowchart LR` for data/integration flows. Choose the type most suitable to the context.
 
@@ -53,18 +76,18 @@ flowchart TD
     D --> E
 ```
 
-### 3. Files and modules involved
+## Stage 3: Files and modules involved
 
 | File/Folder                              | Action   | Reason      |
 | ---------------------------------------- | -------- | ----------- |
 | `app/Models/Foo.php`                     | Create   | New model   |
 | `app/Http/Controllers/FooController.php` | Modify   | New endpoint|
 
-### 4. Dependencies and prerequisites
+## Stage 4: Dependencies and prerequisites
 
 What needs to exist before starting: migrations, external services, permissions, feature flags.
 
-### 5. Implementation checklist
+## Stage 5: Implementation checklist
 
 ```
 [ ] Step 1 — clear description
@@ -74,11 +97,11 @@ What needs to exist before starting: migrations, external services, permissions,
 
 Each item should be small enough to be done and tested independently.
 
-### 6. Edge cases and risks
+## Stage 6: Edge cases and risks
 
 List only the relevant ones, by impact. If there's complex error flow, add a second Mermaid diagram.
 
-### 7. Acceptance criteria
+## Stage 7: Acceptance criteria
 
 How to know it's done. Verifiable, not subjective.
 
