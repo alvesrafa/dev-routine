@@ -103,53 +103,50 @@ Each item should be small enough to be done and tested independently.
 
 ## Final output: Ready-to-use prompt
 
-After completing all stages, generate the following block verbatim, filled in with the collected context. This prompt is ready to be copied and triggered:
+After completing all stages, output the ready-to-use prompt between the `START COPY` and `END COPY` markers. Nothing else between the markers.
 
----
+**Rules for building the prompt:**
+
+1. **Always fill `<context>` with real data** — task summary from Stage 1, file list from Stage 2, dependencies from Stage 3, risks from Stage 5. Never write placeholder text like "Paste here".
+2. **Omit sections with no data** — if Stage 3 has no dependencies, omit that block from `<context>`. If Stage 5 has no risks, omit it too.
+3. **Omit `<history>` block** — this is a fresh plan, there is no conversation history. Remove the entire `Conversation history: <history>…</history>` block.
+4. **Omit `<request>` block** — same reason. Remove `Current request: <request>…</request>`.
+5. **Omit `<response>` / `[FINAL ANSWER]`** — these are only useful in multi-turn structured sessions. For an implementation kick-off prompt, remove them.
+6. **Omit `<example>` blocks** — do not include generic example placeholders.
+7. **Keep the Rules section** — always include it, and customize based on stack conventions from `.claude/conventions.md` if it exists.
+8. After the `END COPY` marker, add a one-line suggested implementation order based on the checklist.
+
+**Output format:**
 
 ```
-You are [senior dev role inferred from the stack]. Your job is to implement the task described below. You are helping [user type: solo dev / team / backend eng / etc.] in [environment inferred from .claude/project.md or generic].
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ START COPY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You are [senior dev role inferred from the stack]. Your job is to implement the task described below. You are helping [user type] in [environment].
 
 Use this tone: precise, direct, no filler.
 
 Reference this material when answering:
 <context>
-[Paste here: task summary from Stage 1, files from Stage 2, dependencies from Stage 3, risks from Stage 5]
+[TASK SUMMARY from Stage 1]
+
+[FILE LIST from Stage 2]
+
+[DEPENDENCIES from Stage 3 — omit block if none]
+
+[RISKS from Stage 5 — omit block if none]
 </context>
 
 Rules:
-- Follow the conventions in .claude/conventions.md if it exists
-- Touch only the files listed in Stage 2 unless a deviation is explicitly justified
+- Touch only the files listed above unless a deviation is explicitly justified
 - Each implementation step must be independently testable before moving to the next
 - If unsure about scope, ask before implementing — do not assume
+[- Additional rules from .claude/conventions.md if it exists]
 
-Examples:
-<example>
-User: implement step 1
-Assistant: [concrete code or action for step 1, scoped to the files listed]
-</example>
-
-Conversation history:
-<history>
-{{HISTORY}}
-</history>
-
-Current request:
-<request>
-{{REQUEST}}
-</request>
-
-Reason carefully before answering. Do not reveal private reasoning. Return only the final answer.
-
-Output format:
-<response>
-[FINAL ANSWER]
-</response>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ END COPY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
----
-
-> Prompt ready. Copy and trigger when you want to start implementation.
+> Prompt ready. Copy everything between the markers and trigger when you want to start implementation.
+> Suggested order: [e.g. "tackle backend steps B-1 → B-N first (run tests after each migration), then frontend F-1 → F-N"]
 
 ## Behavior with description
 
