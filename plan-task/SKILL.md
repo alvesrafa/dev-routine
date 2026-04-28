@@ -15,7 +15,7 @@ Without a description, ask before continuing.
 
 ## Response guidelines
 
-Be comprehensive but concise. Omit obvious explanations, prefer lists and diagrams to paragraphs. Avoid unnecessary text.
+Be comprehensive but concise. Prefer tables and lists over paragraphs. Omit obvious explanations. No flowcharts.
 
 ## Reading project context
 
@@ -53,41 +53,32 @@ If a mid-stage ambiguity requires input, emit the completed portion of the curre
 
 ## Stage 1: Task understanding
 
-Rephrase in 2–3 lines. List assumed premises if there's ambiguity.
+Rephrase in 2–3 lines. List assumed premises as a table if there's ambiguity.
 
-If after rephrasing you identify a fundamental ambiguity that would make Stages 2–7 unreliable (e.g., two mutually exclusive interpretations of scope), pause here and ask the user to confirm before continuing.
+| Premise | Assumed value |
+|---------|--------------|
+| Task type | feature / bug / refactor / infra |
+| Target module | identified name or "unknown" |
 
-## Stage 2: Implementation flowchart
+If after rephrasing you identify a fundamental ambiguity that would make the remaining stages unreliable, pause here and ask the user to confirm before continuing.
 
-Generate a Mermaid diagram representing the main task flow. Use `flowchart TD` for sequential tasks or `flowchart LR` for data/integration flows. Choose the type most suitable to the context.
+## Stage 2: Files and modules involved
 
-Usage examples:
+| File / Folder | Action | Reason |
+|---------------|--------|--------|
+| `path/to/file` | Create / Modify / Delete | Short reason |
 
-- Feature with multiple steps → `flowchart TD` with decisions and branches
-- Integration between services → `flowchart LR` with systems as nodes
-- Async job → sequence with queues and states
+## Stage 3: Dependencies and prerequisites
 
-```mermaid
-flowchart TD
-    A[Start] --> B{Condition}
-    B -->|Yes| C[Step 1]
-    B -->|No| D[Alternative step]
-    C --> E[End]
-    D --> E
-```
+| Item | Type | Required before |
+|------|------|----------------|
+| Migration X | DB | Step 2 |
+| Service Y running | Infra | Step 1 |
+| Feature flag Z | Config | Step 3 |
 
-## Stage 3: Files and modules involved
+If no dependencies exist, write: _No external dependencies identified._
 
-| File/Folder                              | Action   | Reason      |
-| ---------------------------------------- | -------- | ----------- |
-| `app/Models/Foo.php`                     | Create   | New model   |
-| `app/Http/Controllers/FooController.php` | Modify   | New endpoint|
-
-## Stage 4: Dependencies and prerequisites
-
-What needs to exist before starting: migrations, external services, permissions, feature flags.
-
-## Stage 5: Implementation checklist
+## Stage 4: Implementation checklist
 
 ```
 [ ] Step 1 — clear description
@@ -97,13 +88,68 @@ What needs to exist before starting: migrations, external services, permissions,
 
 Each item should be small enough to be done and tested independently.
 
-## Stage 6: Edge cases and risks
+## Stage 5: Edge cases and risks
 
-List only the relevant ones, by impact. If there's complex error flow, add a second Mermaid diagram.
+| Scenario | Impact | Mitigation |
+|----------|--------|------------|
+| Short description | High / Medium / Low | Short mitigation |
 
-## Stage 7: Acceptance criteria
+## Stage 6: Acceptance criteria
 
-How to know it's done. Verifiable, not subjective.
+| Criterion | How to verify |
+|-----------|--------------|
+| Feature works end-to-end | Manual test or automated test description |
+| No regressions | Existing test suite passes |
+
+## Final output: Ready-to-use prompt
+
+After completing all stages, generate the following block verbatim, filled in with the collected context. This prompt is ready to be copied and triggered:
+
+---
+
+```
+You are [senior dev role inferred from the stack]. Your job is to implement the task described below. You are helping [user type: solo dev / team / backend eng / etc.] in [environment inferred from .claude/project.md or generic].
+
+Use this tone: precise, direct, no filler.
+
+Reference this material when answering:
+<context>
+[Paste here: task summary from Stage 1, files from Stage 2, dependencies from Stage 3, risks from Stage 5]
+</context>
+
+Rules:
+- Follow the conventions in .claude/conventions.md if it exists
+- Touch only the files listed in Stage 2 unless a deviation is explicitly justified
+- Each implementation step must be independently testable before moving to the next
+- If unsure about scope, ask before implementing — do not assume
+
+Examples:
+<example>
+User: implement step 1
+Assistant: [concrete code or action for step 1, scoped to the files listed]
+</example>
+
+Conversation history:
+<history>
+{{HISTORY}}
+</history>
+
+Current request:
+<request>
+{{REQUEST}}
+</request>
+
+Reason carefully before answering. Do not reveal private reasoning. Return only the final answer.
+
+Output format:
+<response>
+[FINAL ANSWER]
+</response>
+```
+
+---
+
+> Prompt ready. Copy and trigger when you want to start implementation.
 
 ## Behavior with description
 
