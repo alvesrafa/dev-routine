@@ -103,41 +103,53 @@ Each item should be small enough to be done and tested independently.
 
 ## Final output: Ready-to-use prompt
 
-After completing all stages, output the ready-to-use prompt between the `START COPY` and `END COPY` markers. Nothing else between the markers.
+After completing all stages, output **one single copy block** with everything the implementer needs. There must be exactly one `START COPY` marker and one `END COPY` marker in the entire response — never inside the context, never duplicated.
 
 **Rules for building the prompt:**
 
-1. **Always fill `<context>` with real data** — task summary from Stage 1, file list from Stage 2, dependencies from Stage 3, risks from Stage 5. Never write placeholder text like "Paste here".
-2. **Omit sections with no data** — if Stage 3 has no dependencies, omit that block from `<context>`. If Stage 5 has no risks, omit it too.
-3. **Omit `<history>` block** — this is a fresh plan, there is no conversation history. Remove the entire `Conversation history: <history>…</history>` block.
-4. **Omit `<request>` block** — same reason. Remove `Current request: <request>…</request>`.
-5. **Omit `<response>` / `[FINAL ANSWER]`** — these are only useful in multi-turn structured sessions. For an implementation kick-off prompt, remove them.
-6. **Omit `<example>` blocks** — do not include generic example placeholders.
-7. **Keep the Rules section** — always include it, and customize based on stack conventions from `.claude/conventions.md` if it exists.
-8. After the `END COPY` marker, add a one-line suggested implementation order based on the checklist.
+1. **One block only** — everything goes between the two markers. Do not split into multiple copy blocks.
+2. **Fill `<context>` with ALL stages** — include task summary (Stage 1), file list (Stage 2), dependencies (Stage 3), full checklist (Stage 4), risks (Stage 5), acceptance criteria (Stage 6). Condense; remove headers like "Stage N:" — just the data.
+3. **Omit sections with no data** — if Stage 3 has no dependencies, omit that section from `<context>`. Same for Stage 5 with no risks.
+4. **Keep the Rules section** — always include it, customized with conventions from `.claude/conventions.md` if it exists.
+5. **No placeholder text** — never write "Paste here" or "[...]". Every field must contain real data from the plan.
+6. **No flowcharts, no `<history>`, no `<request>`, no `<example>` blocks** — remove all of these.
 
-**Output format:**
+**Output format — emit this exactly once at the end:**
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ START COPY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-You are [senior dev role inferred from the stack]. Your job is to implement the task described below. You are helping [user type] in [environment].
+You are [senior dev role inferred from the stack]. Your job is to implement the task described below.
 
 Use this tone: precise, direct, no filler.
 
-Reference this material when answering:
 <context>
-[TASK SUMMARY from Stage 1]
+TASK SUMMARY:
+[2–3 line summary from Stage 1]
 
-[FILE LIST from Stage 2]
+CURRENT STATE (verified by code inspection):
+[Key facts about the existing code that the implementer must know — nullable constraints, missing models, current type values, etc.]
 
-[DEPENDENCIES from Stage 3 — omit block if none]
+FILES TO CREATE/MODIFY:
+[Each file on its own line: path (Action) — reason]
 
-[RISKS from Stage 5 — omit block if none]
+DEPENDENCIES:
+[Each dependency: item — type — must be done before X]
+[Omit entire section if none]
+
+IMPLEMENTATION CHECKLIST:
+[Full checklist from Stage 4, grouped by area (BACKEND / FRONTEND / etc.)]
+
+RISKS:
+[Each risk: scenario — impact — mitigation]
+[Omit entire section if none]
+
+ACCEPTANCE CRITERIA:
+[Each criterion: what — how to verify]
 </context>
 
 Rules:
-- Touch only the files listed above unless a deviation is explicitly justified
+- Touch only the files listed above unless a deviation is explicitly justified in a comment
 - Each implementation step must be independently testable before moving to the next
 - If unsure about scope, ask before implementing — do not assume
 [- Additional rules from .claude/conventions.md if it exists]
@@ -145,8 +157,10 @@ Rules:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ END COPY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-> Prompt ready. Copy everything between the markers and trigger when you want to start implementation.
-> Suggested order: [e.g. "tackle backend steps B-1 → B-N first (run tests after each migration), then frontend F-1 → F-N"]
+After the `END COPY` marker, output these two lines and nothing else:
+
+> Suggested order: [one sentence — e.g. "B-1 → B-9 first (run migrations + tests after each), then F-1 → F-10"]
+> Recommended: start a new chat and paste the block above as the first message — keeps implementation context clean and avoids token overhead from this planning session.
 
 ## Behavior with description
 
